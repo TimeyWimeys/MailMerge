@@ -1,4 +1,4 @@
 <?php
-// Redirect naar dashboard.html
+// Redirect to dashboard.html
 header("Location: /pages/dashboard.html");
 exit;

@@ -1,19 +1,30 @@
 #!/bin/bash
 
+#     _/      _/            _/  _/  _/      _/                                        
+#    _/_/  _/_/    _/_/_/      _/  _/_/  _/_/    _/_/    _/  _/_/    _/_/_/    _/_/   
+#   _/  _/  _/  _/    _/  _/  _/  _/  _/  _/  _/_/_/_/  _/_/      _/    _/  _/_/_/_/  
+#  _/      _/  _/    _/  _/  _/  _/      _/  _/        _/        _/    _/  _/         
+# _/      _/    _/_/_/  _/  _/  _/      _/    _/_/_/  _/          _/_/_/    _/_/_/    
+#                                                                    _/               
+#                                                               _/_/                  
+
+## Welcome to the installer of MailMerge
+
+
 # Configuration
-GITHUB_REPO="https://github.com/TimeyWimeys/Mailer.git"
-TARGET_DIR="/var/www/Mailer"
-MAILER_USER="mailer"
-MAILER_GROUP="mailer"
-NGINX_CONFIG="/etc/nginx/sites-available/mailer.conf"
+GITHUB_REPO="https://github.com/TimeyWimeys/mailmerge.git"
+TARGET_DIR="/var/www/mailmerge"
+MAILMERGE_USER="mailmerge"
+MAILMERGE_GROUP="mailmerge"
+NGINX_CONFIG="/etc/nginx/sites-available/mailmerge.conf"
 LISTEN_PORT="5487"
 SERVER_IP=$(ip route get 1.1.1.1 | awk '{print $7}')
 
 # Create system user and group if not present
-if ! id "$MAILER_USER" &>/dev/null; then
+if ! id "$MAILMERGE_USER" &>/dev/null; then
     echo "Creating user and group..."
-    groupadd --system $MAILER_GROUP
-    useradd --system --gid $MAILER_GROUP --no-create-home --shell /usr/sbin/nologin $MAILER_USER
+    groupadd --system $MAILMERGE_GROUP
+    useradd --system --gid $MAILMERGE_GROUP --no-create-home --shell /usr/sbin/nologin $MAILMERGE_USER
 fi
 
 # Clone or update GitHub repo
@@ -26,7 +37,7 @@ else
 fi
 
 # Set permissions
-chown -R $MAILER_USER:$MAILER_GROUP $TARGET_DIR
+chown -R $MAILMERGE_USER:$MAILMERGE_GROUP $TARGET_DIR
 chmod -R 750 $TARGET_DIR
 
 # Detect installed PHP version
@@ -51,8 +62,8 @@ server {
     try_files $uri $uri/ /index.php?$args;
     index index.html index.php
 
-    access_log /var/log/nginx/mailer_access.log;
-    error_log /var/log/nginx/mailer_error.log;
+    access_log /var/log/nginx/mailmerge_access.log;
+    error_log /var/log/nginx/mailmerge_error.log;
 
     location / {
         try_files \$uri \$uri/ = 404;
@@ -66,9 +77,9 @@ server {
 EOL
 
 # Enable site by creating symlink
-if [ ! -L /etc/nginx/sites-enabled/mailer.conf ]; then
+if [ ! -L /etc/nginx/sites-enabled/mailmerge.conf ]; then
     echo "Enabling site..."
-    ln -s $NGINX_CONFIG /etc/nginx/sites-enabled/mailer.conf
+    ln -s $NGINX_CONFIG /etc/nginx/sites-enabled/mailmerge.conf
 fi
 
 # Test and restart nginx
