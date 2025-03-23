@@ -97,10 +97,12 @@ server {
         try_files \$uri \$uri/ = 404;
     }
 
-    location ~ \.php\$ {
-        include snippets/fastcgi-php.conf;
+    location ~ \.php$ {
         fastcgi_pass unix:$PHP_SOCKET;
+        fastcgi_index index.php;
+        include fastcgi_params;
     }
+
 }
 EOL
 
