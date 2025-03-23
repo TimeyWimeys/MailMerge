@@ -2,10 +2,10 @@
 
 # Configuration
 GITHUB_REPO="https://github.com/TimeyWimeys/Mailer.git"
-TARGET_DIR="/var/www/mailer"
+TARGET_DIR="/var/www/Mailer"
 MAILER_USER="mailer"
 MAILER_GROUP="mailer"
-NGINX_CONFIG="/etc/nginx/sites-available/mailer"
+NGINX_CONFIG="/etc/nginx/sites-available/mailer.conf"
 LISTEN_PORT="5487"
 SERVER_IP=$(ip route get 1.1.1.1 | awk '{print $7}')
 
@@ -30,7 +30,7 @@ chown -R $MAILER_USER:$MAILER_GROUP $TARGET_DIR
 chmod -R 750 $TARGET_DIR
 
 # Detect installed PHP version
-PHP_SOCKET=$(find /var/run/php/ -name "php*-fpm.sock" | head -n 1)
+PHP_SOCKET=$(find /var/run/php/ -name "php*-fpm.pid" | sort | head -n 1)
 if [ -z "$PHP_SOCKET" ]; then
     echo "No PHP-FPM socket found! Is PHP installed?"
     exit 1
@@ -46,13 +46,16 @@ server {
     server_name $SERVER_IP;
 
     root $TARGET_DIR;
-    index index.html index.php;
+    include /etc/nginx/global_settings;
+
+    try_files $uri $uri/ /index.php?$args;
+    index index.html index.php
 
     access_log /var/log/nginx/mailer_access.log;
     error_log /var/log/nginx/mailer_error.log;
 
     location / {
-        try_files \$uri \$uri/ =404;
+        try_files \$uri \$uri/ = 404;
     }
 
     location ~ \.php\$ {
@@ -63,9 +66,9 @@ server {
 EOL
 
 # Enable site by creating symlink
-if [ ! -L /etc/nginx/sites-enabled/mailer ]; then
+if [ ! -L /etc/nginx/sites-enabled/mailer.conf ]; then
     echo "Enabling site..."
-    ln -s $NGINX_CONFIG /etc/nginx/sites-enabled/mailer
+    ln -s $NGINX_CONFIG /etc/nginx/sites-enabled/mailer.conf
 fi
 
 # Test and restart nginx
