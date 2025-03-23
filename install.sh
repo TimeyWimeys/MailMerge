@@ -6,12 +6,10 @@
 #  _/      _/  _/    _/  _/  _/  _/      _/  _/        _/        _/    _/  _/         
 # _/      _/    _/_/_/  _/  _/  _/      _/    _/_/_/  _/          _/_/_/    _/_/_/    
 #                                                                    _/               
-#                                                               _/_/                  
 
 ## Welcome to the installer of MailMerge
 
-
-# Configuration
+# Default Configuration
 GITHUB_REPO="https://github.com/TimeyWimeys/mailmerge.git"
 TARGET_DIR="/var/www/mailmerge"
 MAILMERGE_USER="mailmerge"
@@ -19,6 +17,36 @@ MAILMERGE_GROUP="mailmerge"
 NGINX_CONFIG="/etc/nginx/sites-available/mailmerge.conf"
 LISTEN_PORT="5487"
 SERVER_IP=$(ip route get 1.1.1.1 | awk '{print $7}')
+
+# Ask user to confirm or change default values
+echo "Current configuration:"
+echo "MAILMERGE_USER: $MAILMERGE_USER"
+echo "MAILMERGE_GROUP: $MAILMERGE_GROUP"
+echo "NGINX_CONFIG: $NGINX_CONFIG"
+echo "LISTEN_PORT: $LISTEN_PORT"
+echo "SERVER_IP: $SERVER_IP"
+
+# Function to prompt user for a new value
+function prompt_for_value() {
+    local var_name=$1
+    local default_value=$2
+    read -r -p "Do you want to change the $var_name? (y/n, default is n): " change
+    if [[ "$change" == "y" || "$change" == "Y" ]]; then
+        read -r -p "Enter new value for $var_name (default: $default_value): " new_value
+        if [[ -n "$new_value" ]]; then
+            eval "$var_name=\"$new_value\""
+        else
+            echo "Using default value for $var_name: $default_value"
+            eval "$var_name=\"$default_value\""
+        fi
+    fi
+}
+
+# Prompt user for each configurable variable
+prompt_for_value "MAILMERGE_USER" "$MAILMERGE_USER"
+prompt_for_value "MAILMERGE_GROUP" "$MAILMERGE_GROUP"
+prompt_for_value "NGINX_CONFIG" "$NGINX_CONFIG"
+prompt_for_value "LISTEN_PORT" "$LISTEN_PORT"
 
 # Create system user and group if not present
 if ! id "$MAILMERGE_USER" &>/dev/null; then
@@ -59,7 +87,7 @@ server {
     root $TARGET_DIR;
     include /etc/nginx/global_settings;
 
-    try_files $uri $uri/ /index.php?$args;
+    try_files \$uri \$uri/ /index.php?\$args;
     index index.html index.php
 
     access_log /var/log/nginx/mailmerge_access.log;
